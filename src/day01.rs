@@ -3,7 +3,7 @@ use alloc::vec::Vec;
 use core::alloc::Allocator;
 use core::cmp::Reverse;
 
-pub fn solve<A: Allocator + Clone>(alloc: A, input: &[u8]) -> (i32, i32) {
+pub fn solve(alloc: impl Allocator, input: &[u8]) -> (i32, i32) {
     let mut most_calories = Vec::new_in(alloc);
 
     let mut elf_calories = 0;

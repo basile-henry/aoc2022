@@ -41,7 +41,7 @@ Defaults to all the days when none specified
                 )?;
                 let contents = unsafe { memmap2::Mmap::map(&input_file)? };
                 bump.reset();
-                let (part1, part2) = assert_no_alloc(|| aoc2016::$mod::solve(&bump, &contents[..]));
+                let (part1, part2) = assert_no_alloc(|| aoc2022::$mod::solve(&bump, &contents[..]));
                 println!("{}: {part1:?} {part2:?}", $day);
             }
         };
