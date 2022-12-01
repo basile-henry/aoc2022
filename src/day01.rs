@@ -1,22 +1,19 @@
 use alloc::str::from_utf8;
 use alloc::vec::Vec;
 use core::alloc::Allocator;
-use core::cmp::Reverse;
 
 pub fn solve(alloc: impl Allocator, input: &[u8]) -> (i32, i32) {
-    let mut most_calories = Vec::new_in(alloc);
+    let input = from_utf8(input).unwrap();
 
-    let mut elf_calories = 0;
-    for line in input.split(|c| *c == b'\n') {
-        if line.is_empty() {
-            most_calories.push(elf_calories);
-            most_calories.sort_by_key(|&x| Reverse(x)); // To sort in reverse order
-            most_calories.truncate(3);
-            elf_calories = 0;
-        } else {
-            elf_calories += from_utf8(line).unwrap().parse::<i32>().unwrap();
-        }
-    }
+    let most_calories = input
+        .split("\n\n")
+        .map(|elf| elf.lines().map(|l| str::parse::<i32>(l).unwrap()).sum())
+        .fold(Vec::new_in(alloc), |mut top, calories| {
+            let ix = top.partition_point(|x| x > &calories);
+            top.insert(ix, calories);
+            top.truncate(3);
+            top
+        });
 
     (most_calories[0], most_calories.into_iter().sum())
 }
