@@ -1,5 +1,7 @@
+use alloc::str::from_utf8;
+use alloc::vec::Vec;
 use core::alloc::Allocator;
-use std::str::from_utf8;
+use core::cmp::Reverse;
 
 pub fn solve<A: Allocator + Clone>(alloc: A, input: &[u8]) -> (i32, i32) {
     let mut most_calories = Vec::new_in(alloc);
@@ -8,7 +10,7 @@ pub fn solve<A: Allocator + Clone>(alloc: A, input: &[u8]) -> (i32, i32) {
     for line in input.split(|c| *c == b'\n') {
         if line.is_empty() {
             most_calories.push(elf_calories);
-            most_calories.sort_by_key(|&x| std::cmp::Reverse(x)); // To sort in reverse order
+            most_calories.sort_by_key(|&x| Reverse(x)); // To sort in reverse order
             most_calories.truncate(3);
             elf_calories = 0;
         } else {
