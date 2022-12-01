@@ -1,8 +1,10 @@
 use alloc::str::from_utf8;
 use alloc::vec::Vec;
 use core::alloc::Allocator;
+use core::fmt::Debug;
 
-pub fn solve(alloc: impl Allocator, input: &[u8]) -> (i32, i32) {
+#[tracing::instrument]
+pub fn day01<A: Allocator + Debug>(alloc: A, input: &[u8]) -> (i32, i32) {
     let input = from_utf8(input).unwrap();
 
     let most_calories = input
@@ -36,6 +38,6 @@ fn both_paths() {
 
 10000
 "#;
-    assert_eq!(solve(&bump, example).0, 24000);
-    assert_eq!(solve(&bump, example).1, 45000);
+    assert_eq!(day01(&bump, example).0, 24000);
+    assert_eq!(day01(&bump, example).1, 45000);
 }

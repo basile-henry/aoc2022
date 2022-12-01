@@ -18,6 +18,12 @@ So for day 1
 cargo run -- 1
 ```
 
+# Trace
+
+```sh
+cargo run --release -F trace
+```
+
 # License
 
 [MIT - Copyright 2022 Basile Henry](./LICENSE)
