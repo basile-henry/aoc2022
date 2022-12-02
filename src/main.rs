@@ -65,6 +65,7 @@ Defaults to all the days when none specified
     }
 
     day!(day01, 1, "inputs/day01.txt");
+    day!(day02, 2, "inputs/day02.txt");
 
     Ok(())
 }
