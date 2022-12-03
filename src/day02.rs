@@ -8,8 +8,8 @@ use nom::combinator::*;
 use nom::multi::*;
 use nom::sequence::*;
 
-#[tracing::instrument]
-pub fn day02<A: Allocator + Debug>(alloc: A, input: &[u8]) -> (usize, usize) {
+#[cfg_attr(feature = "trace", tracing::instrument)]
+pub fn day02<A: Allocator + Debug>(_alloc: A, input: &[u8]) -> (usize, usize) {
     fold_many0(
         terminated(parse, line_ending),
         || (0, 0),

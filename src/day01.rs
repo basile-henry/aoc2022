@@ -3,7 +3,7 @@ use alloc::vec::Vec;
 use core::alloc::Allocator;
 use core::fmt::Debug;
 
-#[tracing::instrument]
+#[cfg_attr(feature = "trace", tracing::instrument)]
 pub fn day01<A: Allocator + Debug>(alloc: A, input: &[u8]) -> (i32, i32) {
     let input = from_utf8(input).unwrap();
 
