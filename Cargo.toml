@@ -9,6 +9,7 @@ edition = "2021"
 assert_no_alloc = "1.1.2"
 bumpalo = { version = "3.11.1", features = ["allocator_api", "collections"] }
 hashbrown = { version = "0.13.1", features = ["nightly", "inline-more"], default-features = false }
+heapless = "0.7.16"
 memmap2 = "0.5.8"
 nom = { version = "7.1.1", default-features = false }
 rustc-hash = "1.1.0"

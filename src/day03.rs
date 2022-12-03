@@ -1,5 +1,3 @@
-use alloc::boxed::Box;
-use alloc::vec::Vec;
 use core::alloc::Allocator;
 use core::fmt::Debug;
 
@@ -9,14 +7,14 @@ use nom::multi::*;
 use nom::sequence::*;
 
 #[cfg_attr(feature = "trace", tracing::instrument)]
-pub fn day03<A: Allocator + Debug>(alloc: A, input: &[u8]) -> (usize, usize) {
+pub fn day03<A: Allocator + Debug>(_alloc: A, input: &[u8]) -> (usize, usize) {
     let (part1, (part2, _)) = fold_many0(
-        terminated(|i| Rucksack::parse(&alloc, i), line_ending),
-        || (0, (0, Vec::new_in(&alloc))),
+        terminated(Rucksack::parse, line_ending),
+        || (0, (0, heapless::Vec::<_, 4>::new())),
         |(mut part1, (mut part2, mut window)), rucksack| {
-            part1 += rucksack.item_in_both().unwrap() as usize;
+            part1 += rucksack.item_in_both_priority().unwrap() as usize;
 
-            window.push(rucksack);
+            window.push(rucksack).unwrap();
 
             if window.len() == 3 {
                 part2 += badge(window.as_slice()).unwrap() as usize;
@@ -32,31 +30,23 @@ pub fn day03<A: Allocator + Debug>(alloc: A, input: &[u8]) -> (usize, usize) {
     (part1, part2)
 }
 
-struct Rucksack<A: Allocator> {
-    comp_1: Box<[u8], A>,
-    comp_2: Box<[u8], A>,
+#[derive(Debug)]
+struct Rucksack<'a> {
+    comp_1: &'a [u8],
+    comp_2: &'a [u8],
 }
 
-impl<A: Allocator + Copy> Rucksack<A> {
-    fn parse(alloc: A, input: &[u8]) -> nom::IResult<&[u8], Rucksack<A>, ()> {
+impl<'a> Rucksack<'a> {
+    fn parse(input: &'a [u8]) -> nom::IResult<&'a [u8], Rucksack<'a>, ()> {
         map(alpha0, |items: &[u8]| {
             let (comp_1, comp_2) = items.split_at(items.len() / 2);
-
-            let mut v1 = Vec::new_in(alloc);
-            v1.extend(comp_1.iter().copied().map(priority));
-            let comp_1 = v1.into_boxed_slice();
-
-            let mut v2 = Vec::new_in(alloc);
-            v2.extend(comp_2.iter().copied().map(priority));
-            let comp_2 = v2.into_boxed_slice();
-
             Rucksack { comp_1, comp_2 }
         })(input)
     }
 
-    fn item_in_both(&self) -> Option<u8> {
-        let seen_in_comp_1 = U64Set::from_iter(self.comp_1.iter().copied());
-        let seen_in_comp_2 = U64Set::from_iter(self.comp_2.iter().copied());
+    fn item_in_both_priority(&self) -> Option<u8> {
+        let seen_in_comp_1 = U64Set::from_iter(self.comp_1.iter().copied().map(priority));
+        let seen_in_comp_2 = U64Set::from_iter(self.comp_2.iter().copied().map(priority));
 
         seen_in_comp_1.intersection(&seen_in_comp_2).iter().next()
     }
@@ -74,10 +64,16 @@ fn priority(c: u8) -> u8 {
     }
 }
 
-fn badge<A: Allocator>(elves: &[Rucksack<A>]) -> Option<u8> {
-    let mut items = elves
-        .iter()
-        .map(|r| U64Set::from_iter(r.comp_1.iter().chain(r.comp_2.iter()).copied()));
+fn badge(elves: &[Rucksack<'_>]) -> Option<u8> {
+    let mut items = elves.iter().map(|r| {
+        U64Set::from_iter(
+            r.comp_1
+                .iter()
+                .chain(r.comp_2.iter())
+                .copied()
+                .map(priority),
+        )
+    });
 
     let mut seen = items.next().unwrap();
 
