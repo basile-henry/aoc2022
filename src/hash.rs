@@ -1,3 +1,4 @@
+#[allow(dead_code)]
 pub(crate) type DefaultHasherBuilder = core::hash::BuildHasherDefault<rustc_hash::FxHasher>;
 
 #[macro_export]

@@ -9,7 +9,7 @@ use tracing_subscriber::prelude::*;
 #[global_allocator]
 static A: AllocDisabler = AllocDisabler;
 
-const ALLOCATOR_CAPACITY: usize = 40 * 1024;
+const ALLOCATOR_CAPACITY: usize = 4 * 1024;
 
 fn main() -> std::io::Result<()> {
     #[cfg(feature = "trace")]
