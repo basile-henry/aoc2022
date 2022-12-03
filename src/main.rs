@@ -9,7 +9,7 @@ use tracing_subscriber::prelude::*;
 #[global_allocator]
 static A: AllocDisabler = AllocDisabler;
 
-const ALLOCATOR_CAPACITY: usize = 20 * 1024;
+const ALLOCATOR_CAPACITY: usize = 40 * 1024;
 
 fn main() -> std::io::Result<()> {
     #[cfg(feature = "trace")]
@@ -66,6 +66,7 @@ Defaults to all the days when none specified
 
     day!(day01, 1, "inputs/day01.txt");
     day!(day02, 2, "inputs/day02.txt");
+    day!(day03, 3, "inputs/day03.txt");
 
     Ok(())
 }
