@@ -1,5 +1,3 @@
-use core::alloc::Allocator;
-use core::fmt::Debug;
 use core::ops::RangeInclusive;
 
 use nom::character::complete::*;
@@ -8,7 +6,7 @@ use nom::multi::*;
 use nom::sequence::*;
 
 #[cfg_attr(feature = "trace", tracing::instrument)]
-pub fn day04<A: Allocator + Debug>(_alloc: A, input: &[u8]) -> (u32, u32) {
+pub fn day04(input: &[u8]) -> (u32, u32) {
     fold_many0(
         terminated(parse_elf_pair, line_ending),
         || (0, 0),
@@ -49,7 +47,6 @@ fn parse_elf_pair(
 
 #[test]
 fn both_paths() {
-    let bump = bumpalo::Bump::new();
     let example = br#"2-4,6-8
 2-3,4-5
 5-7,7-9
@@ -57,6 +54,6 @@ fn both_paths() {
 6-6,4-6
 2-6,4-8
 "#;
-    assert_eq!(day04(&bump, example).0, 2);
-    assert_eq!(day04(&bump, example).1, 4);
+    assert_eq!(day04(example).0, 2);
+    assert_eq!(day04(example).1, 4);
 }

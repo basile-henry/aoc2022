@@ -5,6 +5,8 @@
 
 extern crate alloc;
 
+pub const NUM_DAYS: usize = 4;
+
 pub mod day01;
 pub mod day02;
 pub mod day03;

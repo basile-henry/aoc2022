@@ -1,23 +1,20 @@
-use core::alloc::Allocator;
-use core::fmt::Debug;
-
 use nom::character::complete::*;
 use nom::combinator::*;
 use nom::multi::*;
 use nom::sequence::*;
 
 #[cfg_attr(feature = "trace", tracing::instrument)]
-pub fn day03<A: Allocator + Debug>(_alloc: A, input: &[u8]) -> (usize, usize) {
+pub fn day03(input: &[u8]) -> (u32, u32) {
     let (part1, (part2, _)) = fold_many0(
         terminated(Rucksack::parse, line_ending),
         || (0, (0, heapless::Vec::<_, 4>::new())),
         |(mut part1, (mut part2, mut window)), rucksack| {
-            part1 += rucksack.item_in_both_priority().unwrap() as usize;
+            part1 += rucksack.item_in_both_priority().unwrap() as u32;
 
             window.push(rucksack).unwrap();
 
             if window.len() == 3 {
-                part2 += badge(window.as_slice()).unwrap() as usize;
+                part2 += badge(window.as_slice()).unwrap() as u32;
                 window.clear();
             }
 
@@ -126,7 +123,6 @@ impl FromIterator<u8> for U64Set {
 
 #[test]
 fn both_paths() {
-    let bump = bumpalo::Bump::new();
     let example = br#"vJrwpWtwJgWrhcsFMMfFFhFp
 jqHRNqRjqzjGDLGLrsFMfFZSrLrFZsSL
 PmmdzqPrVvPwwTWBwg
@@ -134,6 +130,6 @@ wMqvLMZHhHMvwLHjbvcjnnSBnvTQFn
 ttgJtRGJQctTZtZT
 CrZsJsPPZsGzwwsLwLmpwMDw
 "#;
-    assert_eq!(day03(&bump, example).0, 157);
-    assert_eq!(day03(&bump, example).1, 70);
+    assert_eq!(day03(example).0, 157);
+    assert_eq!(day03(example).1, 70);
 }

@@ -1,4 +1,5 @@
 use assert_no_alloc::*;
+use std::path::{Path, PathBuf};
 
 #[cfg(feature = "trace")]
 use tracing_chrome::ChromeLayerBuilder;
@@ -43,31 +44,79 @@ Defaults to all the days when none specified
     };
     let cli_input_path = args.next();
 
-    let mut bump = tracing::info_span!("Setup allocator")
-        .in_scope(|| bumpalo::Bump::with_capacity(ALLOCATOR_CAPACITY));
+    let io_span = tracing::span!(tracing::Level::TRACE, "Allocator / IO");
+    let io_span = io_span.enter();
+
+    #[allow(unused)]
+    let mut bump = bumpalo::Bump::with_capacity(ALLOCATOR_CAPACITY);
     bump.set_allocation_limit(Some(0));
 
-    macro_rules! day {
-        ($mod:ident, $day:expr, $path:expr) => {
-            if cli_day.unwrap_or($day) == $day {
-                let io_span = tracing::span!(tracing::Level::TRACE, "IO");
-                let _enter = io_span.enter();
+    let mut contents: [&[u8]; aoc2022::NUM_DAYS] = Default::default();
 
-                let input_file = std::fs::File::open(
-                    cli_input_path.as_ref().map(|s| s.as_str()).unwrap_or($path),
-                )?;
-                let contents = unsafe { memmap2::Mmap::map(&input_file)? };
-                bump.reset();
-                let (part1, part2) = assert_no_alloc(|| aoc2022::$mod::$mod(&bump, &contents[..]));
-                println!("{}: {part1:?} {part2:?}", $day);
+    if let Some(day) = cli_day {
+        contents[day as usize - 1] = get_content_for_day(
+            cli_input_path
+                .as_deref()
+                .unwrap_or(format!("inputs/day{day:0>2}.txt").as_str()),
+        );
+    } else {
+        for (day, content) in contents.iter_mut().enumerate() {
+            let day = day + 1;
+            tracing::span!(tracing::Level::TRACE, "day").in_scope(|| {
+                let path: PathBuf = format!("inputs/day{day:0>2}.txt").into();
+                *content = get_content_for_day(&path);
+            });
+        }
+    }
+
+    drop(io_span);
+
+    let mut solutions: [Option<(u32, u32)>; aoc2022::NUM_DAYS] = Default::default();
+
+    macro_rules! day {
+        ($mod:ident, $day:expr) => {
+            if cli_day.unwrap_or($day) == $day {
+                let day = $day - 1;
+                solutions[day] = Some(aoc2022::$mod::$mod(contents[day]));
+            }
+        };
+        ($mod:ident, $day:expr, $bump:expr) => {
+            if cli_day.unwrap_or($day) == $day {
+                $bump.reset();
+                let day = $day - 1;
+                solutions[day] = Some(aoc2022::$mod::$mod(&$bump, contents[day]));
             }
         };
     }
 
-    day!(day01, 1, "inputs/day01.txt");
-    day!(day02, 2, "inputs/day02.txt");
-    day!(day03, 3, "inputs/day03.txt");
-    day!(day04, 4, "inputs/day04.txt");
+    assert_no_alloc(|| {
+        day!(day01, 1);
+        day!(day02, 2);
+        day!(day03, 3);
+        day!(day04, 4);
+    });
+
+    let io_span = tracing::span!(tracing::Level::TRACE, "Report");
+    let _enter = io_span.enter();
+
+    for (day, solution) in solutions.iter().enumerate().filter(|x| x.1.is_some()) {
+        let (part1, part2) = solution.unwrap();
+        println!("{day}: {part1} {part2}");
+    }
 
     Ok(())
+}
+
+// This purposefully leaks resources
+// We should be able to open all 25 days input files at the same time and let the OS clean up the
+// resources when the process exits
+fn get_content_for_day(path: impl AsRef<Path>) -> &'static [u8] {
+    let input_file = std::fs::File::open(path).unwrap();
+    let mmap = unsafe { memmap2::Mmap::map(&input_file).unwrap() };
+    let contents = unsafe { core::slice::from_raw_parts(mmap.as_ptr(), mmap.len()) };
+
+    std::mem::forget(mmap);
+    std::mem::forget(input_file);
+
+    contents
 }

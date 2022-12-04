@@ -1,9 +1,7 @@
 use alloc::str::from_utf8;
-use core::alloc::Allocator;
-use core::fmt::Debug;
 
 #[cfg_attr(feature = "trace", tracing::instrument)]
-pub fn day01<A: Allocator + Debug>(_alloc: A, input: &[u8]) -> (u32, u32) {
+pub fn day01(input: &[u8]) -> (u32, u32) {
     let input = from_utf8(input).unwrap();
 
     let most_calories = input
@@ -21,7 +19,6 @@ pub fn day01<A: Allocator + Debug>(_alloc: A, input: &[u8]) -> (u32, u32) {
 
 #[test]
 fn both_paths() {
-    let bump = bumpalo::Bump::new();
     let example = br#"1000
 2000
 3000
@@ -37,6 +34,6 @@ fn both_paths() {
 
 10000
 "#;
-    assert_eq!(day01(&bump, example).0, 24000);
-    assert_eq!(day01(&bump, example).1, 45000);
+    assert_eq!(day01(example).0, 24000);
+    assert_eq!(day01(example).1, 45000);
 }

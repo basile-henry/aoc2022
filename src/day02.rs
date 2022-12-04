@@ -1,6 +1,3 @@
-use core::alloc::Allocator;
-use core::fmt::Debug;
-
 use nom::branch::*;
 use nom::bytes::complete::*;
 use nom::character::complete::*;
@@ -9,7 +6,7 @@ use nom::multi::*;
 use nom::sequence::*;
 
 #[cfg_attr(feature = "trace", tracing::instrument)]
-pub fn day02<A: Allocator + Debug>(_alloc: A, input: &[u8]) -> (usize, usize) {
+pub fn day02(input: &[u8]) -> (u32, u32) {
     fold_many0(
         terminated(parse, line_ending),
         || (0, 0),
@@ -42,8 +39,8 @@ fn parse(input: &[u8]) -> nom::IResult<&[u8], (Round1, Round2), ()> {
     )(input)
 }
 
-fn score(me: Play, outcome: Outcome) -> usize {
-    1 + me as usize + 3 * outcome as usize
+fn score(me: Play, outcome: Outcome) -> u32 {
+    1 + me as u32 + 3 * outcome as u32
 }
 
 #[derive(PartialEq, Clone, Copy)]
@@ -100,11 +97,10 @@ impl Round2 {
 
 #[test]
 fn both_paths() {
-    let bump = bumpalo::Bump::new();
     let example = br#"A Y
 B X
 C Z
 "#;
-    assert_eq!(day02(&bump, example).0, 15);
-    assert_eq!(day02(&bump, example).1, 12);
+    assert_eq!(day02(example).0, 15);
+    assert_eq!(day02(example).1, 12);
 }
