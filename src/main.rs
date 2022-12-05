@@ -1,4 +1,5 @@
 use assert_no_alloc::*;
+use std::fmt::Write;
 use std::path::{Path, PathBuf};
 
 #[cfg(feature = "trace")]
@@ -10,7 +11,7 @@ use tracing_subscriber::prelude::*;
 #[global_allocator]
 static A: AllocDisabler = AllocDisabler;
 
-const ALLOCATOR_CAPACITY: usize = 4 * 1024;
+const ALLOCATOR_CAPACITY: usize = 12 * 1024;
 
 fn main() -> std::io::Result<()> {
     #[cfg(feature = "trace")]
@@ -71,20 +72,22 @@ Defaults to all the days when none specified
 
     drop(io_span);
 
-    let mut solutions: [Option<(u32, u32)>; aoc2022::NUM_DAYS] = Default::default();
+    let mut report = String::with_capacity(1024);
 
     macro_rules! day {
         ($mod:ident, $day:expr) => {
             if cli_day.unwrap_or($day) == $day {
                 let day = $day - 1;
-                solutions[day] = Some(aoc2022::$mod::$mod(contents[day]));
+                let (part1, part2) = aoc2022::$mod::$mod(contents[day]);
+                write!(report, "{day}: {part1} {part2}\n").unwrap();
             }
         };
         ($mod:ident, $day:expr, $bump:expr) => {
             if cli_day.unwrap_or($day) == $day {
                 $bump.reset();
                 let day = $day - 1;
-                solutions[day] = Some(aoc2022::$mod::$mod(&$bump, contents[day]));
+                let (part1, part2) = aoc2022::$mod::$mod(&$bump, contents[day]);
+                write!(report, "{day}: {part1} {part2}\n").unwrap();
             }
         };
     }
@@ -94,15 +97,13 @@ Defaults to all the days when none specified
         day!(day02, 2);
         day!(day03, 3);
         day!(day04, 4);
+        day!(day05, 5, bump);
     });
 
     let io_span = tracing::span!(tracing::Level::TRACE, "Report");
     let _enter = io_span.enter();
 
-    for (day, solution) in solutions.iter().enumerate().filter(|x| x.1.is_some()) {
-        let (part1, part2) = solution.unwrap();
-        println!("{day}: {part1} {part2}");
-    }
+    print!("{report}");
 
     Ok(())
 }
