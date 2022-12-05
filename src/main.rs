@@ -77,16 +77,16 @@ Defaults to all the days when none specified
     macro_rules! day {
         ($mod:ident, $day:expr) => {
             if cli_day.unwrap_or($day) == $day {
-                let day = $day - 1;
-                let (part1, part2) = aoc2022::$mod::$mod(contents[day]);
+                let day = $day;
+                let (part1, part2) = aoc2022::$mod::$mod(contents[day - 1]);
                 write!(report, "{day}: {part1} {part2}\n").unwrap();
             }
         };
         ($mod:ident, $day:expr, $bump:expr) => {
             if cli_day.unwrap_or($day) == $day {
                 $bump.reset();
-                let day = $day - 1;
-                let (part1, part2) = aoc2022::$mod::$mod(&$bump, contents[day]);
+                let day = $day;
+                let (part1, part2) = aoc2022::$mod::$mod(&$bump, contents[day - 1]);
                 write!(report, "{day}: {part1} {part2}\n").unwrap();
             }
         };
