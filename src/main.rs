@@ -70,9 +70,9 @@ Defaults to all the days when none specified
         }
     }
 
-    drop(io_span);
-
     let mut report = String::with_capacity(1024);
+
+    drop(io_span);
 
     macro_rules! day {
         ($mod:ident, $day:expr) => {
@@ -98,6 +98,7 @@ Defaults to all the days when none specified
         day!(day03, 3);
         day!(day04, 4);
         day!(day05, 5, bump);
+        day!(day06, 6);
     });
 
     let io_span = tracing::span!(tracing::Level::TRACE, "Report");

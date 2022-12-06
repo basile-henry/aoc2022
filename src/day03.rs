@@ -3,11 +3,13 @@ use nom::combinator::*;
 use nom::multi::*;
 use nom::sequence::*;
 
+use crate::bitset::U64Set;
+
 #[cfg_attr(feature = "trace", tracing::instrument)]
 pub fn day03(input: &[u8]) -> (u32, u32) {
     let (part1, (part2, _)) = fold_many0(
         terminated(Rucksack::parse, line_ending),
-        || (0, (0, heapless::Vec::<_, 4>::new())),
+        || (0, (0, heapless::Vec::<_, 3>::new())),
         |(mut part1, (mut part2, mut window)), rucksack| {
             part1 += rucksack.item_in_both_priority().unwrap() as u32;
 
@@ -81,44 +83,6 @@ fn badge(elves: &[Rucksack<'_>]) -> Option<u8> {
     let badge = seen.iter().next();
 
     badge
-}
-
-struct U64Set(u64);
-
-impl U64Set {
-    fn empty() -> Self {
-        U64Set(0)
-    }
-
-    fn contains(&self, item: u8) -> bool {
-        debug_assert!(item < 64);
-        (self.0 & 1 << item) > 0
-    }
-
-    fn insert(&mut self, item: u8) {
-        debug_assert!(item < 64);
-        self.0 |= 1 << item;
-    }
-
-    fn intersection(&self, other: &Self) -> Self {
-        Self(self.0 & other.0)
-    }
-
-    fn iter(&'_ self) -> impl Iterator<Item = u8> + '_ {
-        (0..64).filter(|x| self.contains(*x))
-    }
-}
-
-impl FromIterator<u8> for U64Set {
-    fn from_iter<T: IntoIterator<Item = u8>>(iter: T) -> Self {
-        let mut set = Self::empty();
-
-        for x in iter {
-            set.insert(x);
-        }
-
-        set
-    }
 }
 
 #[test]
