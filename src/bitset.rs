@@ -7,6 +7,7 @@ pub(crate) type U128Set = BitSet<u128>;
 pub(crate) type U64Set = BitSet<u64>;
 pub(crate) type U32Set = BitSet<u32>;
 
+#[derive(Debug, Clone, Copy)]
 pub(crate) struct BitSet<T>(T);
 
 impl<T> BitSet<T>
@@ -38,7 +39,6 @@ where
         Self(self.0 & other.0)
     }
 
-    #[allow(dead_code)]
     pub fn union(&self, other: &Self) -> Self {
         Self(self.0 | other.0)
     }
