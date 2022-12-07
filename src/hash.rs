@@ -1,6 +1,12 @@
 #[allow(dead_code)]
 pub(crate) type DefaultHasherBuilder = core::hash::BuildHasherDefault<rustc_hash::FxHasher>;
 
+#[allow(dead_code)]
+pub(crate) type HashSet<K, A> = hashbrown::HashSet<K, DefaultHasherBuilder, A>;
+
+#[allow(dead_code)]
+pub(crate) type HashMap<K, V, A> = hashbrown::HashMap<K, V, DefaultHasherBuilder, A>;
+
 #[macro_export]
 macro_rules! hash_set {
     ($alloc:expr) => {{
