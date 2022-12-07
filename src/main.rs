@@ -1,6 +1,6 @@
 use assert_no_alloc::*;
 use std::fmt::Write;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 
 #[cfg(feature = "trace")]
 use tracing_chrome::ChromeLayerBuilder;
@@ -11,7 +11,7 @@ use tracing_subscriber::prelude::*;
 #[global_allocator]
 static A: AllocDisabler = AllocDisabler;
 
-const ALLOCATOR_CAPACITY: usize = 12 * 1024;
+const ALLOCATOR_CAPACITY: usize = 8 * 1024;
 
 fn main() -> std::io::Result<()> {
     #[cfg(feature = "trace")]
@@ -52,7 +52,7 @@ Defaults to all the days when none specified
     let mut bump = bumpalo::Bump::with_capacity(ALLOCATOR_CAPACITY);
     bump.set_allocation_limit(Some(0));
 
-    let mut contents: [&[u8]; aoc2022::NUM_DAYS] = Default::default();
+    let mut contents: [&str; aoc2022::NUM_DAYS] = Default::default();
 
     if let Some(day) = cli_day {
         contents[day as usize - 1] = get_content_for_day(
@@ -64,8 +64,7 @@ Defaults to all the days when none specified
         for (day, content) in contents.iter_mut().enumerate() {
             let day = day + 1;
             tracing::span!(tracing::Level::TRACE, "day").in_scope(|| {
-                let path: PathBuf = format!("inputs/day{day:0>2}.txt").into();
-                *content = get_content_for_day(&path);
+                *content = get_content_for_day(format!("inputs/day{day:0>2}.txt").as_str());
             });
         }
     }
@@ -109,16 +108,9 @@ Defaults to all the days when none specified
     Ok(())
 }
 
-// This purposefully leaks resources
-// We should be able to open all 25 days input files at the same time and let the OS clean up the
-// resources when the process exits
-fn get_content_for_day(path: impl AsRef<Path>) -> &'static [u8] {
-    let input_file = std::fs::File::open(path).unwrap();
-    let mmap = unsafe { memmap2::Mmap::map(&input_file).unwrap() };
-    let contents = unsafe { core::slice::from_raw_parts(mmap.as_ptr(), mmap.len()) };
-
-    std::mem::forget(mmap);
-    std::mem::forget(input_file);
-
-    contents
+// This purposefully leaks strings
+// We should be able to hold all 25 days in memory quite easily
+fn get_content_for_day(path: impl AsRef<Path>) -> &'static str {
+    let contents = std::fs::read_to_string(path).unwrap();
+    Box::leak(contents.into_boxed_str())
 }

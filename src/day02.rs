@@ -1,12 +1,11 @@
 use nom::branch::*;
-use nom::bytes::complete::*;
 use nom::character::complete::*;
 use nom::combinator::*;
 use nom::multi::*;
 use nom::sequence::*;
 
 #[cfg_attr(feature = "trace", tracing::instrument)]
-pub fn day02(input: &[u8]) -> (u32, u32) {
+pub fn day02(input: &str) -> (u32, u32) {
     fold_many0(
         terminated(parse, line_ending),
         || (0, 0),
@@ -15,7 +14,7 @@ pub fn day02(input: &[u8]) -> (u32, u32) {
             let score2 = score(round2.me(), round2.outcome);
             (part1 + score1, part2 + score2)
         },
-    )(input)
+    )(input.as_bytes())
     .unwrap()
     .1
 }
@@ -24,15 +23,15 @@ fn parse(input: &[u8]) -> nom::IResult<&[u8], (Round1, Round2), ()> {
     map(
         separated_pair(
             alt((
-                map(tag("A"), |_| Play::Rock),
-                map(tag("B"), |_| Play::Paper),
-                map(tag("C"), |_| Play::Scissors),
+                map(char('A'), |_| Play::Rock),
+                map(char('B'), |_| Play::Paper),
+                map(char('C'), |_| Play::Scissors),
             )),
             char(' '),
             alt((
-                map(tag("X"), |_| (Play::Rock, Outcome::Lose)),
-                map(tag("Y"), |_| (Play::Paper, Outcome::Draw)),
-                map(tag("Z"), |_| (Play::Scissors, Outcome::Win)),
+                map(char('X'), |_| (Play::Rock, Outcome::Lose)),
+                map(char('Y'), |_| (Play::Paper, Outcome::Draw)),
+                map(char('Z'), |_| (Play::Scissors, Outcome::Win)),
             )),
         ),
         |(opponent, (me, outcome))| (Round1 { opponent, me }, Round2 { opponent, outcome }),
@@ -96,8 +95,8 @@ impl Round2 {
 }
 
 #[test]
-fn both_paths() {
-    let example = br#"A Y
+fn both_parts() {
+    let example = r#"A Y
 B X
 C Z
 "#;

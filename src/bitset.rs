@@ -47,8 +47,24 @@ where
         (0..(size_of::<T>() * 8) as u8).filter(|x| self.contains(*x))
     }
 
+    #[allow(dead_code)]
     pub fn count(&self) -> usize {
         self.iter().count()
+    }
+
+    /// Insert only new elements to the set
+    /// Returns true if it successfully inserted the whole iterator
+    /// Returns early without consuming the whole iterator otherwise
+    pub fn insert_only_new(&mut self, mut iter: impl Iterator<Item = u8>) -> bool {
+        iter.try_fold(self, |s, e| {
+            if s.contains(e) {
+                None
+            } else {
+                s.insert(e);
+                Some(s)
+            }
+        })
+        .is_some()
     }
 }
 

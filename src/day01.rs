@@ -1,9 +1,5 @@
-use alloc::str::from_utf8;
-
 #[cfg_attr(feature = "trace", tracing::instrument)]
-pub fn day01(input: &[u8]) -> (u32, u32) {
-    let input = from_utf8(input).unwrap();
-
+pub fn day01(input: &str) -> (u32, u32) {
     let most_calories = input
         .split("\n\n")
         .map(|elf| elf.lines().map(|l| str::parse::<u32>(l).unwrap()).sum())
@@ -18,8 +14,8 @@ pub fn day01(input: &[u8]) -> (u32, u32) {
 }
 
 #[test]
-fn both_paths() {
-    let example = br#"1000
+fn both_parts() {
+    let example = r#"1000
 2000
 3000
 

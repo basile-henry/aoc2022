@@ -14,8 +14,8 @@ use nom::multi::*;
 use nom::sequence::*;
 
 #[cfg_attr(feature = "trace", tracing::instrument)]
-pub fn day05<'bump>(alloc: &'bump Bump, input: &[u8]) -> (&'bump str, &'bump str) {
-    let (mut rest, stacks) = Stacks::parse(alloc, input).unwrap();
+pub fn day05<'bump>(alloc: &'bump Bump, input: &str) -> (&'bump str, &'bump str) {
+    let (mut rest, stacks) = Stacks::parse(alloc, input.as_bytes()).unwrap();
 
     let mut stacks1 = Stacks {
         stacks: Vec::new_in(alloc),
@@ -61,7 +61,7 @@ impl<A: Allocator + Copy> Stacks<A> {
                         for (i, x) in row[..len].iter().enumerate() {
                             if let Some(x) = x {
                                 if stacks.len() <= i {
-                                    stacks.resize(i + 1, Vec::with_capacity_in(100, alloc));
+                                    stacks.resize(i + 1, Vec::with_capacity_in(64, alloc));
                                 }
                                 stacks[i].push(*x);
                             }
@@ -90,9 +90,29 @@ impl<A: Allocator + Copy> Stacks<A> {
     }
 
     fn apply2(&mut self, m: &Move) {
-        let from = &mut self.stacks[m.from as usize - 1];
-        let mut top = from.split_off(from.len() - m.count as usize);
-        self.stacks[m.to as usize - 1].append(&mut top);
+        // Move data with no extra allocations
+        let from_ix = m.from as usize - 1;
+        let to_ix = m.to as usize - 1;
+
+        if from_ix == to_ix {
+            return;
+        }
+
+        let mut stacks = self.stacks.iter_mut();
+
+        // Get two mutable reference to two distinct stacks
+        let (from, to) = if from_ix < to_ix {
+            let from = stacks.nth(from_ix).unwrap();
+            let to = stacks.nth(to_ix - from_ix - 1).unwrap();
+            (from, to)
+        } else {
+            let to = stacks.nth(to_ix).unwrap();
+            let from = stacks.nth(from_ix - to_ix - 1).unwrap();
+            (from, to)
+        };
+
+        let top_iter = from.splice(from.len() - m.count as usize.., []);
+        to.extend(top_iter);
     }
 }
 
@@ -138,9 +158,9 @@ impl Move {
 }
 
 #[test]
-fn both_paths() {
+fn both_parts() {
     let bump = bumpalo::Bump::new();
-    let example = br#"    [D]    
+    let example = r#"    [D]    
 [N] [C]    
 [Z] [M] [P]
  1   2   3 

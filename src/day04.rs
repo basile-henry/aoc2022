@@ -6,7 +6,7 @@ use nom::multi::*;
 use nom::sequence::*;
 
 #[cfg_attr(feature = "trace", tracing::instrument)]
-pub fn day04(input: &[u8]) -> (u32, u32) {
+pub fn day04(input: &str) -> (u32, u32) {
     fold_many0(
         terminated(parse_elf_pair, line_ending),
         || (0, 0),
@@ -16,7 +16,7 @@ pub fn day04(input: &[u8]) -> (u32, u32) {
                 part2 + if partial_overlap(&elf1, &elf2) { 1 } else { 0 },
             )
         },
-    )(input)
+    )(input.as_bytes())
     .unwrap()
     .1
 }
@@ -46,8 +46,8 @@ fn parse_elf_pair(
 }
 
 #[test]
-fn both_paths() {
-    let example = br#"2-4,6-8
+fn both_parts() {
+    let example = r#"2-4,6-8
 2-3,4-5
 5-7,7-9
 2-8,3-7

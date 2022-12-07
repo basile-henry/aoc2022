@@ -6,7 +6,7 @@ use nom::sequence::*;
 use crate::bitset::U64Set;
 
 #[cfg_attr(feature = "trace", tracing::instrument)]
-pub fn day03(input: &[u8]) -> (u32, u32) {
+pub fn day03(input: &str) -> (u32, u32) {
     fold_many0(
         terminated(Rucksack::parse, line_ending),
         || ((0, 0), heapless::Vec::<_, 3>::new()),
@@ -22,7 +22,7 @@ pub fn day03(input: &[u8]) -> (u32, u32) {
 
             ((part1, part2), window)
         },
-    )(input)
+    )(input.as_bytes())
     .unwrap()
     .1
      .0
@@ -69,8 +69,8 @@ fn badge(elves: &[Rucksack]) -> Option<u8> {
 }
 
 #[test]
-fn both_paths() {
-    let example = br#"vJrwpWtwJgWrhcsFMMfFFhFp
+fn both_parts() {
+    let example = r#"vJrwpWtwJgWrhcsFMMfFFhFp
 jqHRNqRjqzjGDLGLrsFMfFZSrLrFZsSL
 PmmdzqPrVvPwwTWBwg
 wMqvLMZHhHMvwLHjbvcjnnSBnvTQFn
