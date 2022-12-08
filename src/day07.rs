@@ -16,32 +16,27 @@ use nom::sequence::*;
 pub fn day07<A: Allocator + Copy + Debug>(alloc: A, input: &str) -> (u64, u64) {
     let fs = FileSystem::from_cli_input(alloc, input);
 
-    let part1 =
-        fs.0.reduce_dir_sizes(&|a, b| {
-            let a = if a > 100000 { 0 } else { a };
-            let b = if b > 100000 { 0 } else { b };
-            a + b
-        })
+    let part1 = fs
+        .0
+        .filter_map_reduce_dir_sizes(&|x| if x > 100000 { None } else { Some(x) }, &|a, b| a + b)
         .unwrap();
 
     let total_disk_space = 70000000;
     let need_unused = 30000000;
     let fs_size = fs.size();
 
-    let dir_big_enough = |size| total_disk_space - fs_size + size >= need_unused;
-
     let part2 =
-        fs.0.reduce_dir_sizes(&|a, b| {
-            if dir_big_enough(a) && dir_big_enough(b) {
-                a.min(b)
-            } else if dir_big_enough(a) {
-                a
-            } else if dir_big_enough(b) {
-                b
-            } else {
-                total_disk_space // bigger than we're hoping to find
-            }
-        })
+        fs.0.filter_map_reduce_dir_sizes(
+            &|x| {
+                let dir_big_enough = total_disk_space - fs_size + x >= need_unused;
+                if dir_big_enough {
+                    Some(x)
+                } else {
+                    None
+                }
+            },
+            &|a, b| a.min(b),
+        )
         .unwrap();
 
     (part1, part2)
@@ -135,75 +130,68 @@ impl<'a, A: Allocator + Copy> FileSystem<'a, A> {
             Cli::Output(Output::Dir(dir)) => {
                 self.0.insert_dir(current, dir);
             }
-            Cli::Output(Output::File(size, file)) => {
-                self.0.insert_file(current, file, size);
+            Cli::Output(Output::File(size, _file)) => {
+                self.0.insert_file(current, size);
             }
         }
     }
 
     fn size(&self) -> u64 {
-        match self.0 {
-            Node::Dir(size, _) => size,
-            Node::File(size) => size,
-        }
+        self.0.dir_size
     }
 }
 
 #[derive(Debug)]
-enum Node<'a, A: Allocator + Copy> {
-    Dir(u64, HashMap<&'a str, Node<'a, A>, A>),
-    File(u64),
+struct Node<'a, A: Allocator + Copy> {
+    dir_size: u64,
+    dirs: HashMap<&'a str, Node<'a, A>, A>,
 }
 
 impl<'a, A: Allocator + Copy> Node<'a, A> {
     fn empty_dir(alloc: A) -> Node<'a, A> {
-        Node::Dir(0, hash_map!(alloc))
+        Node {
+            dir_size: 0,
+            dirs: hash_map!(alloc),
+        }
     }
 
     fn insert_dir(&mut self, path: &[&'a str], dir: &'a str) {
         match path {
-            [] => match self {
-                Node::Dir(_, hm) => {
-                    _ = hm.insert(dir, Self::empty_dir(*hm.allocator()));
-                }
-                Node::File(_) => panic!("unexpected insert into file"),
-            },
-            [next, rest @ ..] => match self {
-                Node::File(_) => {}
-                Node::Dir(_, ref mut hm) => hm.get_mut(next).unwrap().insert_dir(rest, dir),
-            },
+            [] => {
+                self.dirs
+                    .insert(dir, Self::empty_dir(*self.dirs.allocator()));
+            }
+            [next, rest @ ..] => {
+                self.dirs.get_mut(next).unwrap().insert_dir(rest, dir);
+            }
         }
     }
 
-    fn insert_file(&mut self, path: &[&'a str], file: &'a str, size: u64) {
+    fn insert_file(&mut self, path: &[&'a str], size: u64) {
         match path {
-            [] => match self {
-                Node::Dir(dir_size, hm) => {
-                    *dir_size += size;
-                    _ = hm.insert(file, Node::File(size));
-                }
-                Node::File(_) => panic!("unexpected insert into file"),
-            },
-            [next, rest @ ..] => match self {
-                Node::File(_) => {}
-                Node::Dir(dir_size, ref mut hm) => {
-                    *dir_size += size;
-                    hm.get_mut(next).unwrap().insert_file(rest, file, size);
-                }
-            },
+            [] => {
+                self.dir_size += size;
+            }
+            [next, rest @ ..] => {
+                self.dir_size += size;
+                self.dirs.get_mut(next).unwrap().insert_file(rest, size);
+            }
         }
     }
 
-    fn reduce_dir_sizes<F>(&self, f: &F) -> Option<u64>
+    fn filter_map_reduce_dir_sizes<M, R>(&self, m: &M, r: &R) -> Option<u64>
     where
-        F: Fn(u64, u64) -> u64,
+        M: Fn(u64) -> Option<u64>,
+        R: Fn(u64, u64) -> u64,
     {
-        match self {
-            Node::Dir(dir_size, hm) => core::iter::once(*dir_size)
-                .chain(hm.values().filter_map(|v| v.reduce_dir_sizes(f)))
-                .reduce(f),
-            Node::File(_) => None,
-        }
+        m(self.dir_size)
+            .into_iter()
+            .chain(
+                self.dirs
+                    .values()
+                    .filter_map(|v| v.filter_map_reduce_dir_sizes(m, r)),
+            )
+            .reduce(r)
     }
 }
 
