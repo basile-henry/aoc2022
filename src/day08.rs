@@ -3,9 +3,9 @@ use core::alloc::Allocator;
 use core::fmt::Debug;
 
 #[cfg_attr(feature = "trace", tracing::instrument)]
-pub fn day08<A: Allocator + Debug>(alloc: A, input: &str) -> (u32, u32) {
+pub fn day08<A: Allocator + Debug>(alloc: A, input: &str) -> (usize, usize) {
     // Assume input is a square
-    let dim = input.find('\n').unwrap() as u32;
+    let dim = input.find('\n').unwrap();
 
     let input = input.as_bytes();
 
@@ -15,23 +15,23 @@ pub fn day08<A: Allocator + Debug>(alloc: A, input: &str) -> (u32, u32) {
         };
     }
 
+    let mut visible_count = 0;
+
     let mut visible = Vec::new_in(&alloc);
-    visible.resize((dim * dim) as usize, false);
+    visible.resize(dim * dim, false);
 
     macro_rules! set_visible {
         ($x:expr, $y:expr) => {
-            visible[($y * dim + $x) as usize] = true;
+            if let Some(vis) = visible.get_mut($y * dim + $x) {
+                if !*vis {
+                    *vis = true;
+                    visible_count += 1;
+                }
+            }
         };
     }
 
-    let mut scores = Vec::new_in(&alloc);
-    scores.resize((dim * dim) as usize, 1u32);
-
-    macro_rules! insert_score {
-        ($x:expr, $y:expr, $score:expr) => {
-            scores[($y * dim + $x) as usize] *= $score;
-        };
-    }
+    let mut max_score = 0;
 
     for y in 0..dim {
         let mut tallest_up = -1;
@@ -39,15 +39,57 @@ pub fn day08<A: Allocator + Debug>(alloc: A, input: &str) -> (u32, u32) {
         let mut tallest_left = -1;
         let mut tallest_right = -1;
         for x in 0..dim {
+            // Visibility
             {
-                // LEFT
+                // Left - traverse from left edge
                 let h = get_tree_height!(x, y);
 
                 if h > tallest_left {
                     set_visible!(x, y);
                     tallest_left = h;
                 }
+            }
 
+            {
+                // Right - traverse from right edge
+                let x = dim - 1 - x;
+                let h = get_tree_height!(x, y);
+
+                if h > tallest_right {
+                    set_visible!(x, y);
+                    tallest_right = h;
+                }
+            }
+
+            {
+                // Up - traverse from top edge
+                let (x, y) = (y, x);
+                let h = get_tree_height!(x, y);
+
+                if h > tallest_up {
+                    set_visible!(x, y);
+                    tallest_up = h;
+                }
+            }
+
+            {
+                // Down - traverse from bottom edge
+                let (x, y) = (y, x);
+                let y = dim - 1 - y;
+                let h = get_tree_height!(x, y);
+
+                if h > tallest_down {
+                    set_visible!(x, y);
+                    tallest_down = h;
+                }
+            }
+
+            // Score
+            let h = get_tree_height!(x, y);
+            let mut tree_score = 1;
+
+            {
+                // Left
                 let mut score = 0;
                 while x > score {
                     score += 1;
@@ -58,19 +100,11 @@ pub fn day08<A: Allocator + Debug>(alloc: A, input: &str) -> (u32, u32) {
                     }
                 }
 
-                insert_score!(x, y, score);
+                tree_score *= score;
             }
 
             {
-                // RIGHT
-                let x = dim - 1 - x;
-                let h = get_tree_height!(x, y);
-
-                if h > tallest_right {
-                    set_visible!(x, y);
-                    tallest_right = h;
-                }
-
+                // Right
                 let mut score = 0;
                 while x < dim - 1 - score {
                     score += 1;
@@ -81,19 +115,11 @@ pub fn day08<A: Allocator + Debug>(alloc: A, input: &str) -> (u32, u32) {
                     }
                 }
 
-                insert_score!(x, y, score);
+                tree_score *= score;
             }
 
             {
-                // UP
-                let (x, y) = (y, x);
-                let h = get_tree_height!(x, y);
-
-                if h > tallest_up {
-                    set_visible!(x, y);
-                    tallest_up = h;
-                }
-
+                // Up
                 let mut score = 0;
                 while y > score {
                     score += 1;
@@ -104,20 +130,10 @@ pub fn day08<A: Allocator + Debug>(alloc: A, input: &str) -> (u32, u32) {
                     }
                 }
 
-                insert_score!(x, y, score);
+                tree_score *= score;
             }
-
             {
-                // DOWN
-                let (x, y) = (y, x);
-                let y = dim - 1 - y;
-                let h = get_tree_height!(x, y);
-
-                if h > tallest_down {
-                    set_visible!(x, y);
-                    tallest_down = h;
-                }
-
+                // Down
                 let mut score = 0;
                 while y < dim - 1 - score {
                     score += 1;
@@ -128,13 +144,15 @@ pub fn day08<A: Allocator + Debug>(alloc: A, input: &str) -> (u32, u32) {
                     }
                 }
 
-                insert_score!(x, y, score);
+                tree_score *= score;
             }
+
+            max_score = max_score.max(tree_score);
         }
     }
 
-    let part1 = visible.iter().filter(|v| **v).count() as u32;
-    let part2 = scores.into_iter().max().unwrap();
+    let part1 = visible_count;
+    let part2 = max_score;
 
     (part1, part2)
 }
