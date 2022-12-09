@@ -14,11 +14,9 @@ macro_rules! hash_set {
         hashbrown::HashSet::with_hasher_in(s, $alloc)
     }};
 
-    // Build a hash_map from an iterator
-    ($alloc:expr, $iter:expr) => {{
-        let mut set = hash_set!($alloc);
-        $iter.collect_into(&mut set);
-        set
+    ($capacity:expr, $alloc:expr) => {{
+        let s = $crate::hash::DefaultHasherBuilder::default();
+        hashbrown::HashSet::with_capacity_and_hasher_in($capacity, s, $alloc)
     }};
 }
 

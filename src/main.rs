@@ -11,7 +11,7 @@ use tracing_subscriber::prelude::*;
 #[global_allocator]
 static A: AllocDisabler = AllocDisabler;
 
-const ALLOCATOR_CAPACITY: usize = 30 * 1024;
+const ALLOCATOR_CAPACITY: usize = 60 * 1024;
 
 fn main() -> std::io::Result<()> {
     #[cfg(feature = "trace")]
@@ -100,6 +100,7 @@ Defaults to all the days when none specified
         day!(day06, 6);
         day!(day07, 7, bump);
         day!(day08, 8, bump);
+        day!(day09, 9, bump);
     });
 
     let io_span = tracing::span!(tracing::Level::TRACE, "Report");
