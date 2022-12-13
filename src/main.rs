@@ -7,11 +7,11 @@ use tracing_chrome::ChromeLayerBuilder;
 #[cfg(feature = "trace")]
 use tracing_subscriber::prelude::*;
 
-#[cfg(all(debug_assertions, not(feature = "trace")))] // required when disable_release is set (default)
-#[global_allocator]
-static A: AllocDisabler = AllocDisabler;
+// #[cfg(all(debug_assertions, not(feature = "trace")))] // required when disable_release is set (default)
+// #[global_allocator]
+// static A: AllocDisabler = AllocDisabler;
 
-const ALLOCATOR_CAPACITY: usize = 60 * 1024;
+const ALLOCATOR_CAPACITY: usize = 100 * 1024;
 
 fn main() -> std::io::Result<()> {
     #[cfg(feature = "trace")]
@@ -103,6 +103,7 @@ Defaults to all the days when none specified
         day!(day09, 9, bump);
         day!(day10, 10, bump);
         day!(day11, 11, bump);
+        day!(day12, 12, bump);
     });
 
     let io_span = tracing::span!(tracing::Level::TRACE, "Report");

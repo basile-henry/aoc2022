@@ -1,11 +1,11 @@
 #![warn(clippy::all)]
 #![feature(allocator_api)]
 #![feature(iter_collect_into)]
-#![no_std]
+// #![no_std]
 
 extern crate alloc;
 
-pub const NUM_DAYS: usize = 11;
+pub const NUM_DAYS: usize = 12;
 
 pub mod day01;
 pub mod day02;
@@ -18,6 +18,7 @@ pub mod day08;
 pub mod day09;
 pub mod day10;
 pub mod day11;
+pub mod day12;
 
 pub(crate) mod bitset;
 pub(crate) mod hash;
