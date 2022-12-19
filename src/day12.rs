@@ -7,7 +7,7 @@ use heapless::binary_heap::Min;
 use heapless::BinaryHeap;
 
 #[cfg_attr(feature = "trace", tracing::instrument)]
-pub fn day12<A: Allocator + Debug>(alloc: A, input: &str) -> (usize, usize) {
+pub fn day12<A: Allocator + Debug>(alloc: A, input: &str) -> (u16, u16) {
     let input = input.as_bytes();
 
     let mut width = None;
@@ -40,34 +40,36 @@ pub fn day12<A: Allocator + Debug>(alloc: A, input: &str) -> (usize, usize) {
                 .get(y as usize * (width + 1) + x as usize)
                 .map(|c| match c {
                     b'S' => 0,
-                    b'E' => 26,
+                    b'E' => 25,
                     _ => c - b'a',
                 })
         }
     };
 
-    let mut to_visit = BinaryHeap::<_, Min, 64>::new();
-    to_visit.push((1, start)).unwrap();
+    // Search in reverse, in order to solve part2 along the way
+    let mut to_visit = BinaryHeap::<_, Min, 32>::new();
+    to_visit.push((0, end)).unwrap();
 
-    let mut costs = hash_map!(&alloc);
-    costs.insert(start, vec![start]);
+    let mut costs = hash_map!(width * width, &alloc);
+    costs.insert(end, 0);
 
-    let mut visited = hash_set!(&alloc);
+    let mut visited = hash_set!(width * width, &alloc);
 
-    let mut path = None;
     let mut part1 = None;
+    let mut part2 = None;
 
     while let Some((cost, current)) = to_visit.pop() {
         visited.insert(current);
 
-        if current == end {
-            path = costs.get(&current);
-            part1 = Some(costs.get(&current).unwrap().len() - 1);
+        if current == start {
+            part1 = Some(cost);
             break;
         }
 
-        let path = costs.get(&current).unwrap().clone();
-        // let cost = path.len();
+        if part2.is_none() && altitude(current) == Some(0) {
+            part2 = Some(cost);
+        }
+
         let (x, y) = current;
         let x = x as isize;
         let y = y as isize;
@@ -77,13 +79,11 @@ pub fn day12<A: Allocator + Debug>(alloc: A, input: &str) -> (usize, usize) {
                 let n = ((x + dx) as u8, (y + dy) as u8);
                 let c = altitude(current).unwrap();
                 match altitude(n) {
-                    Some(a) if a <= c + 1 => match costs.get(&n).map(|v| v.len()) {
-                        Some(prev) if cost + 1 >= prev => {}
+                    Some(a) if c <= a + 1 => match costs.get(&n) {
+                        Some(&prev) if cost + 1 >= prev => {}
                         _ => {
                             to_visit.push((cost + 1, n)).unwrap();
-                            let mut path = path.clone();
-                            path.push(n);
-                            costs.insert(n, path);
+                            costs.insert(n, cost + 1);
                         }
                     },
                     _ => {}
@@ -92,21 +92,7 @@ pub fn day12<A: Allocator + Debug>(alloc: A, input: &str) -> (usize, usize) {
         }
     }
 
-    for (i, c) in input.iter().enumerate() {
-        let x = i % (width + 1);
-        let y = i / (width + 1);
-        let c = char::from_u32(*c as u32).unwrap();
-
-        if path.unwrap().iter().any(|&p| p == (x as u8, y as u8)) {
-            print!("\x1b[31m{c}\x1b[0m");
-        } else if visited.contains(&(x as u8, y as u8)) {
-            print!("\x1b[32m{c}\x1b[0m");
-        } else {
-            print!("{c}");
-        }
-    }
-
-    (part1.unwrap(), 0)
+    (part1.unwrap(), part2.unwrap())
 }
 
 #[test]
@@ -119,5 +105,5 @@ acctuvwj
 abdefghi
 "#;
     assert_eq!(day12(&bump, example).0, 31);
-    assert_eq!(day12(&bump, example).1, 0);
+    assert_eq!(day12(&bump, example).1, 29);
 }

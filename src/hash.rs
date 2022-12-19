@@ -26,4 +26,9 @@ macro_rules! hash_map {
         let s = $crate::hash::DefaultHasherBuilder::default();
         hashbrown::HashMap::with_hasher_in(s, $alloc)
     }};
+
+    ($capacity:expr, $alloc:expr) => {{
+        let s = $crate::hash::DefaultHasherBuilder::default();
+        hashbrown::HashMap::with_capacity_and_hasher_in($capacity, s, $alloc)
+    }};
 }
