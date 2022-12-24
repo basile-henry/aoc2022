@@ -7,9 +7,9 @@ use tracing_chrome::ChromeLayerBuilder;
 #[cfg(feature = "trace")]
 use tracing_subscriber::prelude::*;
 
-#[cfg(all(debug_assertions, not(feature = "trace")))] // required when disable_release is set (default)
-#[global_allocator]
-static A: AllocDisabler = AllocDisabler;
+// #[cfg(all(debug_assertions, not(feature = "trace")))] // required when disable_release is set (default)
+// #[global_allocator]
+// static A: AllocDisabler = AllocDisabler;
 
 const ALLOCATOR_CAPACITY: usize = 70 * 1024;
 
@@ -52,7 +52,7 @@ Defaults to all the days when none specified
     let mut bump = bumpalo::Bump::with_capacity(ALLOCATOR_CAPACITY);
     bump.set_allocation_limit(Some(0));
 
-    let mut contents: [&str; aoc2022::NUM_DAYS] = Default::default();
+    let mut contents: [&str; 25] = Default::default();
 
     if let Some(day) = cli_day {
         contents[day as usize - 1] = get_content_for_day(
@@ -104,6 +104,7 @@ Defaults to all the days when none specified
         day!(day10, 10, bump);
         day!(day11, 11, bump);
         day!(day12, 12, bump);
+        day!(day24, 24, bump);
     });
 
     let io_span = tracing::span!(tracing::Level::TRACE, "Report");
@@ -117,6 +118,11 @@ Defaults to all the days when none specified
 // This purposefully leaks strings
 // We should be able to hold all 25 days in memory quite easily
 fn get_content_for_day(path: impl AsRef<Path>) -> &'static str {
-    let contents = std::fs::read_to_string(path).unwrap();
-    Box::leak(contents.into_boxed_str())
+    match std::fs::read_to_string(&path) {
+        Ok(content) => Box::leak(content.into_boxed_str()),
+        Err(err) => {
+            eprintln!("Warn: {err} on path {}", path.as_ref().display());
+            ""
+        }
+    }
 }
