@@ -104,6 +104,7 @@ Defaults to all the days when none specified
         day!(day10, 10, bump);
         day!(day11, 11, bump);
         day!(day12, 12, bump);
+        day!(day18, 18, bump);
         day!(day24, 24, bump);
     });
 
