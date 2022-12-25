@@ -106,6 +106,7 @@ Defaults to all the days when none specified
         day!(day12, 12, bump);
         day!(day18, 18, bump);
         day!(day24, 24, bump);
+        day!(day25, 25, bump);
     });
 
     let io_span = tracing::span!(tracing::Level::TRACE, "Report");
