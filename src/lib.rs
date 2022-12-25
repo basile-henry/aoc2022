@@ -19,6 +19,7 @@ pub mod day11;
 pub mod day12;
 pub mod day18;
 pub mod day24;
+pub mod day25;
 
 pub(crate) mod bitset;
 pub(crate) mod hash;

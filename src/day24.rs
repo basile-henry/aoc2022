@@ -1,14 +1,15 @@
-use alloc::collections::BinaryHeap;
 use core::alloc::Allocator;
 use core::fmt::Debug;
 use core::iter::once;
-use std::alloc::System;
+
+use heapless::binary_heap::Min;
+use heapless::BinaryHeap;
 
 use crate::bitset::{U128Set, U32Set};
 use crate::hash_set;
 
 #[cfg_attr(feature = "trace", tracing::instrument)]
-pub fn day24<A: Allocator + Debug + Copy>(alloc: A, input: &str) -> (u32, u32) {
+pub fn day24<A: Allocator + Debug + Copy>(alloc: A, input: &str) -> (u16, u16) {
     let bassin = Bassin::parse(alloc, input);
 
     let start_x = 0;
@@ -16,7 +17,8 @@ pub fn day24<A: Allocator + Debug + Copy>(alloc: A, input: &str) -> (u32, u32) {
     let end_x = bassin.width - 1;
     let end_y = bassin.height - 1;
 
-    let part1 = dijkstra(
+    let part1 = a_star(
+        alloc,
         &bassin,
         Pos {
             time: 0,
@@ -27,7 +29,8 @@ pub fn day24<A: Allocator + Debug + Copy>(alloc: A, input: &str) -> (u32, u32) {
         end_y,
     );
 
-    let back = dijkstra(
+    let back = a_star(
+        alloc,
         &bassin,
         Pos {
             time: part1,
@@ -38,7 +41,8 @@ pub fn day24<A: Allocator + Debug + Copy>(alloc: A, input: &str) -> (u32, u32) {
         start_y,
     );
 
-    let part2 = dijkstra(
+    let part2 = a_star(
+        alloc,
         &bassin,
         Pos {
             time: back,
@@ -163,7 +167,7 @@ impl<A: Allocator + Copy> Bassin<A> {
     }
 
     #[allow(dead_code)]
-    fn draw(&self, time: u32, pos_x: Option<u8>, pos_y: Option<u8>) {
+    fn draw(&self, time: u16, pos_x: Option<u8>, pos_y: Option<u8>) {
         for y in 0..self.height {
             print!("#");
             if y == 0 || y == self.height - 1 {
@@ -214,7 +218,7 @@ impl<A: Allocator + Copy> Bassin<A> {
 
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Clone, Copy)]
 struct Pos {
-    time: u32,
+    time: u16,
     x: u8,
     y: u8,
 }
@@ -254,13 +258,24 @@ impl Pos {
     }
 }
 
-fn dijkstra<A: Allocator + Copy>(bassin: &Bassin<A>, start: Pos, goal_x: u8, goal_y: u8) -> u32 {
-    let cost = |pos: Pos| core::cmp::Reverse(pos.time);
+fn a_star<A: Allocator + Copy>(
+    alloc: A,
+    bassin: &Bassin<A>,
+    start: Pos,
+    goal_x: u8,
+    goal_y: u8,
+) -> u16 {
+    macro_rules! heuristic {
+        ($pos:expr) => {{
+            let manhattan = $pos.x.abs_diff(goal_x) + $pos.y.abs_diff(goal_y);
+            $pos.time + manhattan as u16
+        }};
+    }
 
-    let mut to_visit = BinaryHeap::with_capacity(1024);
-    to_visit.push((cost(start), start));
+    let mut to_visit = BinaryHeap::<_, Min, 2048>::new();
+    to_visit.push((heuristic!(start), start)).unwrap();
 
-    let mut seen = hash_set!(128 * 1024, System);
+    let mut seen = hash_set!(150 * 1024, alloc);
     seen.insert(start);
 
     while let Some((_, current)) = to_visit.pop() {
@@ -270,7 +285,7 @@ fn dijkstra<A: Allocator + Copy>(bassin: &Bassin<A>, start: Pos, goal_x: u8, goa
 
         for next in current.next(bassin.width, bassin.height) {
             if !seen.contains(&next) && bassin.can_move_to(next) {
-                to_visit.push((cost(next), next));
+                to_visit.push((heuristic!(next), next)).unwrap();
                 seen.insert(next);
             }
         }
