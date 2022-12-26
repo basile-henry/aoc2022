@@ -6,6 +6,7 @@ use heapless::binary_heap::Min;
 use heapless::BinaryHeap;
 
 use crate::bitset::{U128Set, U32Set};
+use crate::hash::HashSet;
 use crate::hash_set;
 
 #[cfg_attr(feature = "trace", tracing::instrument)]
@@ -258,6 +259,43 @@ impl Pos {
     }
 }
 
+// Way to not store all seen, but only the recent ones
+struct RecentlySeen<const NUM_BUCKETS: usize, A: Allocator + Clone> {
+    buckets: [(Option<u16>, HashSet<Pos, A>); NUM_BUCKETS],
+}
+
+impl<const NUM_BUCKETS: usize, A: Allocator + Copy> RecentlySeen<NUM_BUCKETS, A> {
+    fn new(alloc: A, bucket_capacity: usize) -> Self {
+        let mut buckets = Vec::with_capacity_in(NUM_BUCKETS, alloc);
+
+        for _ in 0..NUM_BUCKETS {
+            buckets.push((None, hash_set!(bucket_capacity, alloc)));
+        }
+
+        RecentlySeen {
+            buckets: buckets.try_into().unwrap(),
+        }
+    }
+
+    fn insert(&mut self, pos: Pos) -> bool {
+        let (k, s) = &mut self.buckets[pos.time as usize % NUM_BUCKETS];
+
+        if *k == Some(pos.time) {
+            s.insert(pos)
+        } else {
+            // Recycle the old one
+            k.replace(pos.time);
+            s.clear();
+            s.insert(pos)
+        }
+    }
+
+    fn contains(&self, pos: &Pos) -> bool {
+        let (k, s) = &self.buckets[pos.time as usize % NUM_BUCKETS];
+        *k == Some(pos.time) && s.contains(pos)
+    }
+}
+
 fn a_star<A: Allocator + Copy>(
     alloc: A,
     bassin: &Bassin<A>,
@@ -275,7 +313,7 @@ fn a_star<A: Allocator + Copy>(
     let mut to_visit = BinaryHeap::<_, Min, 2048>::new();
     to_visit.push((heuristic!(start), start)).unwrap();
 
-    let mut seen = hash_set!(150 * 1024, alloc);
+    let mut seen = RecentlySeen::<32, _>::new(alloc, 64);
     seen.insert(start);
 
     while let Some((_, current)) = to_visit.pop() {
