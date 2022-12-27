@@ -11,7 +11,7 @@ use tracing_subscriber::prelude::*;
 #[global_allocator]
 static A: AllocDisabler = AllocDisabler;
 
-const ALLOCATOR_CAPACITY: usize = 180 * 1024; // bytes
+const ALLOCATOR_CAPACITY: usize = 380 * 1024; // bytes
 
 fn main() -> std::io::Result<()> {
     #[cfg(feature = "trace")]
@@ -104,6 +104,7 @@ Defaults to all the days when none specified
         day!(day10, 10, bump);
         day!(day11, 11, bump);
         day!(day12, 12, bump);
+        day!(day13, 13, bump);
         day!(day18, 18, bump);
         day!(day24, 24, bump);
         day!(day25, 25, bump);

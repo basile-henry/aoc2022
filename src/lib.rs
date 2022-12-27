@@ -17,9 +17,14 @@ pub mod day09;
 pub mod day10;
 pub mod day11;
 pub mod day12;
+pub mod day13;
 pub mod day18;
 pub mod day24;
 pub mod day25;
 
+#[allow(dead_code)]
 pub(crate) mod bitset;
+#[allow(dead_code)]
 pub(crate) mod hash;
+#[allow(dead_code)]
+pub(crate) mod nom_extra;
