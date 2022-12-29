@@ -9,7 +9,7 @@ use nom::combinator::*;
 use nom::multi::*;
 use nom::sequence::*;
 
-#[cfg_attr(feature = "trace", tracing::instrument)]
+#[cfg_attr(feature = "trace", tracing::instrument(skip_all))]
 pub fn day18<A: Allocator + Debug + Copy>(alloc: A, input: &str) -> (usize, usize) {
     let (bounds @ (a_min, a_max, b_min, b_max, c_min, c_max), cubes) = fold_many0(
         map(

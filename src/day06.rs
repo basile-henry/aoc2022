@@ -1,6 +1,6 @@
 use crate::bitset::U32Set;
 
-#[cfg_attr(feature = "trace", tracing::instrument)]
+#[cfg_attr(feature = "trace", tracing::instrument(skip_all))]
 pub fn day06(input: &str) -> (usize, usize) {
     let solve = |window_size| {
         let (offset, _) = input

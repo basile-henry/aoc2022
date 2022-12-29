@@ -1,6 +1,6 @@
 use core::fmt::Debug;
 
-#[cfg_attr(feature = "trace", tracing::instrument)]
+#[cfg_attr(feature = "trace", tracing::instrument(skip_all))]
 pub fn day14(input: &str) -> (usize, usize) {
     let mut reservoir = [[Cell::Air; 1000]; 200];
     let mut min_x = usize::MAX;

@@ -17,7 +17,16 @@ fn main() -> std::io::Result<()> {
     #[cfg(feature = "trace")]
     let (chrome_layer, _guard) = ChromeLayerBuilder::new().build();
     #[cfg(feature = "trace")]
-    tracing_subscriber::registry().with(chrome_layer).init();
+    let fmt_subscriber = tracing_subscriber::fmt::layer()
+        .with_span_events(tracing_subscriber::fmt::format::FmtSpan::CLOSE)
+        .with_target(false)
+        .with_level(false)
+        .compact();
+    #[cfg(feature = "trace")]
+    tracing_subscriber::registry()
+        .with(chrome_layer)
+        .with(fmt_subscriber)
+        .init();
 
     let main_span = tracing::span!(tracing::Level::TRACE, "main");
     let _enter = main_span.enter();

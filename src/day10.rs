@@ -11,7 +11,7 @@ use nom::combinator::*;
 use nom::multi::*;
 use nom::sequence::*;
 
-#[cfg_attr(feature = "trace", tracing::instrument)]
+#[cfg_attr(feature = "trace", tracing::instrument(skip_all))]
 pub fn day10<'bump>(bump: &'bump Bump, input: &str) -> (usize, &'bump str) {
     let (_cpu, part1, crt) = fold_many0(
         terminated(Instruction::parse, newline),

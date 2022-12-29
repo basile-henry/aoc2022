@@ -7,7 +7,7 @@ use nom::combinator::*;
 use nom::multi::*;
 use nom::sequence::*;
 
-#[cfg_attr(feature = "trace", tracing::instrument)]
+#[cfg_attr(feature = "trace", tracing::instrument(skip_all))]
 pub fn day25<'bump>(bump: &'bump Bump, input: &str) -> (&'bump str, usize) {
     let sum = fold_many0(terminated(snafu_parse, line_ending), || 0, |sum, x| sum + x)(input)
         .unwrap()

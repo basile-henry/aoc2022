@@ -11,7 +11,7 @@ use nom::sequence::*;
 
 use crate::nom_extra::separated_fold_many0;
 
-#[cfg_attr(feature = "trace", tracing::instrument)]
+#[cfg_attr(feature = "trace", tracing::instrument(skip_all))]
 pub fn day13<A: Allocator + Debug + Copy>(alloc: A, input: &str) -> (usize, usize) {
     let (part1, _, mut packets) = fold_many0(
         terminated(|i| parse_pair(alloc, i), alt((eof, line_ending))),

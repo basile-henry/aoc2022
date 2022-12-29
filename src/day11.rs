@@ -11,7 +11,7 @@ use nom::combinator::*;
 use nom::multi::*;
 use nom::sequence::*;
 
-#[cfg_attr(feature = "trace", tracing::instrument)]
+#[cfg_attr(feature = "trace", tracing::instrument(skip_all))]
 pub fn day11<A: Allocator + Debug>(alloc: A, input: &str) -> (usize, usize) {
     let parse = tracing::trace_span!("parse");
     let parse = parse.enter();

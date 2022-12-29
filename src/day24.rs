@@ -9,7 +9,7 @@ use crate::bitset::{U128Set, U32Set};
 use crate::hash::HashSet;
 use crate::hash_set;
 
-#[cfg_attr(feature = "trace", tracing::instrument)]
+#[cfg_attr(feature = "trace", tracing::instrument(skip_all))]
 pub fn day24<A: Allocator + Debug + Copy>(alloc: A, input: &str) -> (u16, u16) {
     let bassin = Bassin::parse(alloc, input);
 

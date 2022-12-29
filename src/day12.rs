@@ -6,7 +6,7 @@ use crate::hash_set;
 use heapless::binary_heap::Min;
 use heapless::BinaryHeap;
 
-#[cfg_attr(feature = "trace", tracing::instrument)]
+#[cfg_attr(feature = "trace", tracing::instrument(skip_all))]
 pub fn day12<A: Allocator + Debug>(alloc: A, input: &str) -> (u16, u16) {
     let input = input.as_bytes();
 

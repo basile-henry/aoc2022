@@ -5,7 +5,7 @@ use nom::combinator::*;
 use nom::multi::*;
 use nom::sequence::*;
 
-#[cfg_attr(feature = "trace", tracing::instrument)]
+#[cfg_attr(feature = "trace", tracing::instrument(skip_all))]
 pub fn day04(input: &str) -> (u32, u32) {
     fold_many0(
         terminated(parse_elf_pair, line_ending),

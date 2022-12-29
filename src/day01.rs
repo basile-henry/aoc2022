@@ -1,4 +1,4 @@
-#[cfg_attr(feature = "trace", tracing::instrument)]
+#[cfg_attr(feature = "trace", tracing::instrument(skip_all))]
 pub fn day01(input: &str) -> (u32, u32) {
     let most_calories = input
         .split("\n\n")

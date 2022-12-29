@@ -12,7 +12,7 @@ use nom::combinator::*;
 use nom::multi::*;
 use nom::sequence::*;
 
-#[cfg_attr(feature = "trace", tracing::instrument)]
+#[cfg_attr(feature = "trace", tracing::instrument(skip_all))]
 pub fn day09<A: Allocator + Debug>(alloc: A, input: &str) -> (usize, usize) {
     let (visited1, visited9, _knots) = fold_many0(
         terminated(Move::parse, newline),

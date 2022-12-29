@@ -12,7 +12,7 @@ use nom::combinator::*;
 use nom::multi::*;
 use nom::sequence::*;
 
-#[cfg_attr(feature = "trace", tracing::instrument)]
+#[cfg_attr(feature = "trace", tracing::instrument(skip_all))]
 pub fn day07<A: Allocator + Copy + Debug>(alloc: A, input: &str) -> (u64, u64) {
     let fs = FileSystem::from_cli_input(alloc, input);
 

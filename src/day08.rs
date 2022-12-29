@@ -2,7 +2,7 @@ use alloc::vec::Vec;
 use core::alloc::Allocator;
 use core::fmt::Debug;
 
-#[cfg_attr(feature = "trace", tracing::instrument)]
+#[cfg_attr(feature = "trace", tracing::instrument(skip_all))]
 pub fn day08<A: Allocator + Debug>(alloc: A, input: &str) -> (usize, usize) {
     // Assume input is a square
     let dim = input.find('\n').unwrap();

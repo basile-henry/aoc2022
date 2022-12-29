@@ -5,7 +5,7 @@ use nom::sequence::*;
 
 use crate::bitset::U64Set;
 
-#[cfg_attr(feature = "trace", tracing::instrument)]
+#[cfg_attr(feature = "trace", tracing::instrument(skip_all))]
 pub fn day03(input: &str) -> (u32, u32) {
     fold_many0(
         terminated(Rucksack::parse, line_ending),

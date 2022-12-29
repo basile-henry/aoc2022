@@ -10,7 +10,7 @@ use nom::bytes::complete::tag;
 use nom::character::complete::*;
 use nom::sequence::*;
 
-#[cfg_attr(feature = "trace", tracing::instrument)]
+#[cfg_attr(feature = "trace", tracing::instrument(skip_all))]
 pub fn day15<A: Allocator + Debug + Copy>(alloc: A, input: &str) -> (usize, usize) {
     let (sensors, beacons) = parse(alloc, input);
 

@@ -13,7 +13,7 @@ use nom::combinator::*;
 use nom::multi::*;
 use nom::sequence::*;
 
-#[cfg_attr(feature = "trace", tracing::instrument)]
+#[cfg_attr(feature = "trace", tracing::instrument(skip_all))]
 pub fn day05<'bump>(alloc: &'bump Bump, input: &str) -> (&'bump str, &'bump str) {
     let (mut rest, stacks) = Stacks::parse(alloc, input.as_bytes()).unwrap();
 
